@@ -5,4 +5,4 @@ export interface Bushel {
     connection: mongoose.Connection;
     models: any;
 }
-export declare function initialize(bushel: Bushel, base_url: string): void;
+export declare function initialize(bushel: Bushel, base_url?: string): void;

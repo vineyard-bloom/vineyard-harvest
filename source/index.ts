@@ -9,7 +9,7 @@ export interface Bushel {
   models
 }
 
-export function initialize(bushel: Bushel, base_url:string) {
+export function initialize(bushel: Bushel, base_url:string = '') {
   const models = bushel.models
 
   lawn.initialize_endpoints(bushel.app, [
