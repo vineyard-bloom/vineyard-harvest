@@ -2,9 +2,13 @@
 var lawn = require('vineyard-lawn');
 var vineyard_lawn_1 = require('vineyard-lawn');
 var query = require('./query');
+var vineyard_mongoose = require('vineyard-mongoose');
+var scheming = require('./scheming');
+exports.scheming = scheming;
 function initialize(bushel, base_url) {
     if (base_url === void 0) { base_url = ''; }
-    var models = bushel.models;
+    var definitions = scheming.get_definitions(bushel.schema);
+    var models = vineyard_mongoose.define_schema(definitions);
     lawn.initialize_endpoints(bushel.app, [
         {
             method: vineyard_lawn_1.Method.post,

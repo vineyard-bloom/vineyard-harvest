@@ -2,15 +2,19 @@ import * as mongoose from 'mongoose'
 import * as lawn from 'vineyard-lawn'
 import {Method, HTTP_Error, Bad_Request} from 'vineyard-lawn'
 import * as query from './query'
+import * as vineyard_mongoose from 'vineyard-mongoose'
+import * as scheming from './scheming'
+export {scheming}
 
 export interface Bushel {
   app
   connection: mongoose.Connection
-  models
+  schema: scheming.Schema
 }
 
-export function initialize(bushel: Bushel, base_url:string = '') {
-  const models = bushel.models
+export function initialize(bushel: Bushel, base_url: string = '') {
+  const definitions = scheming.get_definitions(bushel.schema)
+  const models = vineyard_mongoose.define_schema(definitions)
 
   lawn.initialize_endpoints(bushel.app, [
 
@@ -25,7 +29,7 @@ export function initialize(bushel: Bushel, base_url:string = '') {
     {
       method: Method.post,
       path: base_url + "/query",
-      action: function(request:query.Query_Request) {
+      action: function(request: query.Query_Request) {
         return query.execute(request, models)
       }
     }
