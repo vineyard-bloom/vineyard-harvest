@@ -4,12 +4,12 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-(function (Category) {
-    Category[Category["primitive"] = 0] = "primitive";
-    Category[Category["list"] = 1] = "list";
-    Category[Category["trellis"] = 2] = "trellis";
-})(exports.Category || (exports.Category = {}));
-var Category = exports.Category;
+(function (Type_Category) {
+    Type_Category[Type_Category["primitive"] = 0] = "primitive";
+    Type_Category[Type_Category["list"] = 1] = "list";
+    Type_Category[Type_Category["trellis"] = 2] = "trellis";
+})(exports.Type_Category || (exports.Type_Category = {}));
+var Type_Category = exports.Type_Category;
 var Type = (function () {
     function Type(name) {
         this.name = name;
@@ -19,12 +19,11 @@ var Type = (function () {
 exports.Type = Type;
 var Primitive = (function (_super) {
     __extends(Primitive, _super);
-    function Primitive(name, db_type) {
+    function Primitive(name) {
         _super.call(this, name);
-        this.db_type = db_type;
     }
     Primitive.prototype.get_category = function () {
-        return Category.primitive;
+        return Type_Category.primitive;
     };
     return Primitive;
 }(Type));
@@ -35,7 +34,7 @@ var Trellis_Type = (function (_super) {
         _super.apply(this, arguments);
     }
     Trellis_Type.prototype.get_category = function () {
-        return Category.trellis;
+        return Type_Category.trellis;
     };
     return Trellis_Type;
 }(Type));
@@ -46,7 +45,7 @@ var List_Type = (function (_super) {
         _super.apply(this, arguments);
     }
     List_Type.prototype.get_category = function () {
-        return Category.list;
+        return Type_Category.list;
     };
     return List_Type;
 }(Type));
@@ -87,21 +86,29 @@ var Trellis = (function () {
     return Trellis;
 }());
 exports.Trellis = Trellis;
-var Loader = (function () {
-    function Loader() {
-        this.incomplete = {};
+var Library = (function () {
+    function Library() {
         this.types = {
-            String: new Primitive('String', String),
-            Number: new Primitive('Number', Number),
+            String: new Primitive('string'),
+            Int: new Primitive('int'),
         };
+    }
+    return Library;
+}());
+exports.Library = Library;
+var Loader = (function () {
+    function Loader(library) {
+        this.incomplete = {};
+        this.library = library;
     }
     return Loader;
 }());
 function load_type(source, loader) {
-    if (source === String)
-        return loader.types.String;
-    if (source === Number)
-        return loader.types.Number;
+    var types = loader.library.types;
+    if (source == "string")
+        return types.String;
+    if (source == "int")
+        return types.Int;
     throw Error("Not supported");
 }
 function load_property(name, source, trellis, loader) {
@@ -110,20 +117,19 @@ function load_property(name, source, trellis, loader) {
 }
 function load_trellis(name, source, loader) {
     var trellis = new Trellis(name);
-    for (var name_1 in source) {
+    for (var name_1 in source.properties) {
         trellis.properties[name_1] = load_property(name_1, source[name_1], trellis, loader);
     }
     return trellis;
 }
 function define(schema, definitions) {
-    var loader = new Loader();
+    var library = new Library();
+    var loader = new Loader(library);
     for (var name_2 in definitions) {
         var definition = definitions[name_2];
         schema.trellises[name_2] = load_trellis(name_2, definition, loader);
     }
+    return library;
 }
 exports.define = define;
-function get_definitions(schema) {
-}
-exports.get_definitions = get_definitions;
 //# sourceMappingURL=scheming.js.map

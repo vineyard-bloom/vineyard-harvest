@@ -1,4 +1,4 @@
-export enum Category {
+export enum Type_Category {
   primitive,
   list,
   trellis
@@ -11,35 +11,33 @@ export abstract class Type {
     this.name = name
   }
 
-  abstract get_category(): Category
+  abstract get_category(): Type_Category
 }
 
 export class Primitive extends Type {
-  db_type
 
-  constructor(name: string, db_type) {
+  constructor(name: string) {
     super(name)
-    this.db_type = db_type
   }
 
-  get_category(): Category {
-    return Category.primitive
+  get_category(): Type_Category {
+    return Type_Category.primitive
   }
 }
 
 export class Trellis_Type extends Type {
   trellis: Trellis
 
-  get_category(): Category {
-    return Category.trellis
+  get_category(): Type_Category {
+    return Type_Category.trellis
   }
 }
 
 export class List_Type extends Type {
   child_type: Type
 
-  get_category(): Category {
-    return Category.list
+  get_category(): Type_Category {
+    return Type_Category.list
   }
 }
 
@@ -82,24 +80,34 @@ export interface Schema {
   trellises: {[name: string]: Trellis}
 }
 
-class Loader {
-  incomplete = {}
+export class Library {
   types
 
   constructor() {
     this.types = {
-      String: new Primitive('String', String),
-      Number: new Primitive('Number', Number),
+      String: new Primitive('string'),
+      Int: new Primitive('int'),
     }
   }
 }
 
-function load_type(source, loader: Loader) {
-  if (source === String)
-    return loader.types.String
+class Loader {
+  incomplete = {}
+  library: Library
 
-  if (source === Number)
-    return loader.types.Number
+  constructor(library: Library){
+    this.library = library
+  }
+}
+
+function load_type(source, loader: Loader) {
+  const types = loader.library.types
+
+  if (source == "string")
+    return types.String
+
+  if (source == "int")
+    return types.Int
 
   throw Error("Not supported")
 }
@@ -111,21 +119,20 @@ function load_property(name: string, source, trellis: Trellis, loader: Loader) {
 
 function load_trellis(name: string, source, loader: Loader) {
   const trellis = new Trellis(name)
-  for (let name in source) {
+  for (let name in source.properties) {
     trellis.properties [name] = load_property(name, source [name], trellis, loader)
   }
   return trellis
 }
 
 export function define(schema: Schema, definitions) {
-  const loader = new Loader()
+  const library = new Library()
+  const loader = new Loader(library)
 
   for (let name in definitions) {
     const definition = definitions [name]
     schema.trellises [name] = load_trellis(name, definition, loader)
   }
-}
 
-export function get_definitions(schema: Schema) {
-
+  return library
 }

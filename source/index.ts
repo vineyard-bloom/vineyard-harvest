@@ -1,14 +1,12 @@
-import * as mongoose from 'mongoose'
 import * as lawn from 'vineyard-lawn'
 import {Method, HTTP_Error, Bad_Request} from 'vineyard-lawn'
 import * as query from './query'
-import * as vineyard_mongoose from 'vineyard-mongoose'
 import * as scheming from './scheming'
 export {scheming}
 
 export interface Bushel {
   app
-  connection: mongoose.Connection
+  db
   schema: scheming.Schema
 }
 

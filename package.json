@@ -14,9 +14,9 @@
     "vineyard-lawn": "https://github.com/silentorb/vineyard-lawn"
   },
   "devDependencies": {
-    "@types/mongoose": "^4.7.8",
     "@types/es6-promise": "0.0.32",
     "@types/node": "^7.0.5",
+    "@types/sequelize": "^4.0.49",
     "typescript": "^2.1.6"
   }
 }

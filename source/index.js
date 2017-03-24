@@ -2,7 +2,6 @@
 var lawn = require('vineyard-lawn');
 var vineyard_lawn_1 = require('vineyard-lawn');
 var query = require('./query');
-var vineyard_mongoose = require('vineyard-mongoose');
 var scheming = require('./scheming');
 exports.scheming = scheming;
 function initialize(bushel, base_url) {
