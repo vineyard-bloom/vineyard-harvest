@@ -2,6 +2,7 @@ import * as lawn from 'vineyard-lawn'
 import {Method, HTTP_Error, Bad_Request} from 'vineyard-lawn'
 import * as query from './query'
 import * as scheming from './scheming'
+import {apply_schema} from "./apply_schema"
 export {scheming}
 
 export interface Bushel {
@@ -11,10 +12,13 @@ export interface Bushel {
 }
 
 export function initialize(bushel: Bushel, base_url: string = '') {
-  const definitions = scheming.get_definitions(bushel.schema)
-  const models = vineyard_mongoose.define_schema(definitions)
+  // const definitions = scheming.get_definitions(bushel.schema)
+  // const models = vineyard_mongoose.define_schema(definitions)
+  apply_schema(bushel.schema, bushel.db)
 
-  lawn.initialize_endpoints(bushel.app, [
+  const schema = bushel.schema
+
+  lawn.create_endpoints(bushel.app, [
 
     {
       method: Method.post,
@@ -27,8 +31,8 @@ export function initialize(bushel: Bushel, base_url: string = '') {
     {
       method: Method.post,
       path: base_url + "/query",
-      action: function(request: query.Query_Request) {
-        return query.execute(request, models)
+      action: function(request) {
+        return query.execute(request.data, schema.trellises)
       }
     }
 

@@ -70,14 +70,11 @@ export class List extends Property {
 export class Trellis {
   name: string
   properties: {[name: string]: Property} = {}
+  table
 
   constructor(name: string) {
     this.name = name
   }
-}
-
-export interface Schema {
-  trellises: {[name: string]: Trellis}
 }
 
 export class Library {
@@ -91,11 +88,25 @@ export class Library {
   }
 }
 
+export class Schema {
+  trellises: {[name: string]: Trellis} = {}
+  library: Library = new Library()
+
+  define(definitions) {
+    const loader = new Loader(this.library)
+
+    for (let name in definitions) {
+      const definition = definitions [name]
+      this.trellises [name] = load_trellis(name, definition, loader)
+    }
+  }
+}
+
 class Loader {
   incomplete = {}
   library: Library
 
-  constructor(library: Library){
+  constructor(library: Library) {
     this.library = library
   }
 }
@@ -109,7 +120,7 @@ function load_type(source, loader: Loader) {
   if (source == "int")
     return types.Int
 
-  throw Error("Not supported")
+  throw Error("Not supported: " + JSON.stringify(source))
 }
 
 function load_property(name: string, source, trellis: Trellis, loader: Loader) {
@@ -120,19 +131,8 @@ function load_property(name: string, source, trellis: Trellis, loader: Loader) {
 function load_trellis(name: string, source, loader: Loader) {
   const trellis = new Trellis(name)
   for (let name in source.properties) {
-    trellis.properties [name] = load_property(name, source [name], trellis, loader)
+    const property = source.properties [name]
+    trellis.properties [name] = load_property(name, property, trellis, loader)
   }
   return trellis
-}
-
-export function define(schema: Schema, definitions) {
-  const library = new Library()
-  const loader = new Loader(library)
-
-  for (let name in definitions) {
-    const definition = definitions [name]
-    schema.trellises [name] = load_trellis(name, definition, loader)
-  }
-
-  return library
 }

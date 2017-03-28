@@ -96,6 +96,21 @@ var Library = (function () {
     return Library;
 }());
 exports.Library = Library;
+var Schema = (function () {
+    function Schema() {
+        this.trellises = {};
+        this.library = new Library();
+    }
+    Schema.prototype.define = function (definitions) {
+        var loader = new Loader(this.library);
+        for (var name_1 in definitions) {
+            var definition = definitions[name_1];
+            this.trellises[name_1] = load_trellis(name_1, definition, loader);
+        }
+    };
+    return Schema;
+}());
+exports.Schema = Schema;
 var Loader = (function () {
     function Loader(library) {
         this.incomplete = {};
@@ -109,7 +124,7 @@ function load_type(source, loader) {
         return types.String;
     if (source == "int")
         return types.Int;
-    throw Error("Not supported");
+    throw Error("Not supported: " + JSON.stringify(source));
 }
 function load_property(name, source, trellis, loader) {
     var type = load_type(source, loader);
@@ -117,19 +132,10 @@ function load_property(name, source, trellis, loader) {
 }
 function load_trellis(name, source, loader) {
     var trellis = new Trellis(name);
-    for (var name_1 in source.properties) {
-        trellis.properties[name_1] = load_property(name_1, source[name_1], trellis, loader);
+    for (var name_2 in source.properties) {
+        var property = source.properties[name_2];
+        trellis.properties[name_2] = load_property(name_2, property, trellis, loader);
     }
     return trellis;
 }
-function define(schema, definitions) {
-    var library = new Library();
-    var loader = new Loader(library);
-    for (var name_2 in definitions) {
-        var definition = definitions[name_2];
-        schema.trellises[name_2] = load_trellis(name_2, definition, loader);
-    }
-    return library;
-}
-exports.define = define;
 //# sourceMappingURL=scheming.js.map

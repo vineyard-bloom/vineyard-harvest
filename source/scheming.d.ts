@@ -40,15 +40,17 @@ export declare class Trellis {
     properties: {
         [name: string]: Property;
     };
+    table: any;
     constructor(name: string);
-}
-export interface Schema {
-    trellises: {
-        [name: string]: Trellis;
-    };
 }
 export declare class Library {
     types: any;
     constructor();
 }
-export declare function define(schema: Schema, definitions: any): Library;
+export declare class Schema {
+    trellises: {
+        [name: string]: Trellis;
+    };
+    library: Library;
+    define(definitions: any): void;
+}

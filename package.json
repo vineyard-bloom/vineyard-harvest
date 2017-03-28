@@ -11,6 +11,7 @@
   "author": "Christopher W. Johnson",
   "license": "MIT",
   "dependencies": {
+    "sequelize": "^3.30.4",
     "vineyard-lawn": "https://github.com/silentorb/vineyard-lawn"
   },
   "devDependencies": {
