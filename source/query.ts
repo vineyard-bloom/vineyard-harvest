@@ -1,41 +1,64 @@
-import * as lawn from 'vineyard-lawn'
+import {Bad_Request, createEndpoints} from 'vineyard-lawn'
+import {Collection_Map, Collection, Query} from "vineyard-ground";
+import {promiseEach} from "../../vineyard-users/source/utility";
+
+export type StepObject = {
+  action: string
+}
+
+export type Step = string | StepObject
 
 export interface Query_Request {
   version: string,
   trellis: string
-  steps?: any[][]
+  steps?: Step[]
 }
 
 export interface Query_Response {
   objects: any[]
 }
 
-function run_first_command(trellis, command): Promise<any> {
-  if (command[0] == 'find_one') {
-    return trellis.table.findOne(command[1])
-  }
-  else if (command[0] == 'find') {
-    return trellis.table.find(command[1])
-  }
+type Command = (query: Query<any>, props) => Query<any>
+type CommandMap = {
+  [key: string]: Command;
 }
 
-function run_command(input, command): Promise<any> {
-  return Promise.resolve()
+const commands: CommandMap = {
+
+  filter: (query, props) => query.filter(props),
+  first: (query, props) => query.firstOrNull(),
+
 }
 
-export function execute(query: Query_Request, trellises): Promise<Query_Response> {
-  const trellis = trellises[query.trellis]
-  if (!trellis)
-    throw new lawn.Bad_Request('Invalid trellis: ' + query.trellis + '.')
+function run_command(query, step: Step): Query<any> {
+  const commandName = typeof step == 'string'
+    ? step
+    : step.action
 
-  const steps = query.steps || [['find']]
-  let step = run_first_command(trellis, steps[0])
+  const command = commands [commandName]
+  if (!command)
+    throw new Bad_Request('Invalid query command: ' + step + '.')
 
-  steps.slice(1).forEach(command => {
-    step = step.then(input => run_command(input, command))
-  })
+  return command(query, step)
+}
 
-  return step
+function run_commands(request: Query_Request, collection: Collection<any>): Promise<any> {
+  let query = collection.all()
+  const steps = request.steps || []
+
+  for (let i = 0; i < steps.length; ++i) {
+    query = run_command(query, steps[i])
+  }
+
+  return query.exec()
+}
+
+export function execute(query: Query_Request, collections: Collection_Map): Promise<Query_Response> {
+  const collection = collections[query.trellis] as Collection<any>
+  if (!collection)
+    throw new Bad_Request('Invalid trellis: ' + query.trellis + '.')
+
+  return run_commands(query, collection)
     .then(result => {
       return {
         objects: []

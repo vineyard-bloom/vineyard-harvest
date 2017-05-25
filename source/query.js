@@ -1,26 +1,32 @@
 "use strict";
-var lawn = require('vineyard-lawn');
-function run_first_command(trellis, command) {
-    if (command[0] == 'find_one') {
-        return trellis.table.findOne(command[1]);
-    }
-    else if (command[0] == 'find') {
-        return trellis.table.find(command[1]);
-    }
+Object.defineProperty(exports, "__esModule", { value: true });
+var vineyard_lawn_1 = require("vineyard-lawn");
+var commands = {
+    filter: function (query, props) { return query.filter(props); },
+    first: function (query, props) { return query.firstOrNull(); },
+};
+function run_command(query, step) {
+    var commandName = typeof step == 'string'
+        ? step
+        : step.action;
+    var command = commands[commandName];
+    if (!command)
+        throw new vineyard_lawn_1.Bad_Request('Invalid query command: ' + step + '.');
+    return command(query, step);
 }
-function run_command(input, command) {
-    return Promise.resolve();
+function run_commands(request, collection) {
+    var query = collection.all();
+    var steps = request.steps || [];
+    for (var i = 0; i < steps.length; ++i) {
+        query = run_command(query, steps[i]);
+    }
+    return query.exec();
 }
-function execute(query, trellises) {
-    var trellis = trellises[query.trellis];
-    if (!trellis)
-        throw new lawn.Bad_Request('Invalid trellis: ' + query.trellis + '.');
-    var steps = query.steps || [['find']];
-    var step = run_first_command(trellis, steps[0]);
-    steps.slice(1).forEach(function (command) {
-        step = step.then(function (input) { return run_command(input, command); });
-    });
-    return step
+function execute(query, collections) {
+    var collection = collections[query.trellis];
+    if (!collection)
+        throw new vineyard_lawn_1.Bad_Request('Invalid trellis: ' + query.trellis + '.');
+    return run_commands(query, collection)
         .then(function (result) {
         return {
             objects: []
